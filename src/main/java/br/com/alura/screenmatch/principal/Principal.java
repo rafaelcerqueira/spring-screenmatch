@@ -4,9 +4,12 @@ import br.com.alura.screenmatch.Config;
 import br.com.alura.screenmatch.model.DadosEpisodio;
 import br.com.alura.screenmatch.model.DadosSerie;
 import br.com.alura.screenmatch.model.DadosTemporada;
+import br.com.alura.screenmatch.model.Episodio;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -56,5 +59,36 @@ public class Principal {
                 .sorted(Comparator.comparing(DadosEpisodio::avaliacao).reversed())
                 .limit(5)
                 .forEach(System.out::println);
+
+        List<Episodio> episodios = temporadas.stream()
+                .flatMap(t -> t.episodios().stream()
+                        .map(d -> new Episodio(t.temporada(), d))
+                ).collect(Collectors.toList());
+
+        int opcao;
+        do {
+            System.out.println("Deseja filtrar por ano? 0 - Não ### 1 - Sim");
+            opcao = leitura.nextInt();
+            if (opcao == 1) {
+                System.out.println("Filtrar por ano: ");
+                var ano = leitura.nextInt();
+                leitura.nextLine();
+                LocalDate dataBusca = LocalDate.of(ano, 1, 1);
+
+                DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+                episodios.stream()
+                        .filter(e -> e.getDataLancamento() != null && e.getDataLancamento().isAfter(dataBusca))
+                        .forEach(e -> System.out.println(
+                                "Temporada: " + e.getTemporada() +
+                                        " Espisódio: " + e.getTitulo() +
+                                        " Data de lançamento: " + e.getDataLancamento().format(formatador)
+                        ));
+            }
+
+        } while (opcao != 0);
+
+
+
     }
 }
